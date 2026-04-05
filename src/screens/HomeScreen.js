@@ -1,18 +1,14 @@
-import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { colors } from '../utils/theme';
 
 export default function HomeScreen() {
   return (
     <ScrollView style={styles.container}>
-      
-      {/* Üst Karşılama Alanı */}
       <View style={styles.header}>
         <Text style={styles.title}>Ana Sayfa</Text>
         <Text style={styles.subtitle}>[Kullanıcı Karşılama Metni Gelecek]</Text>
       </View>
 
-      {/* Yaklaşan Bakımlar Placeholder */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Yaklaşan Bakımlar</Text>
         <View style={styles.placeholderCard}>
@@ -20,23 +16,18 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Bitkilerim Listesi Placeholder (Yan Yana Kutular) */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Bitkilerim</Text>
         <View style={styles.grid}>
-          
-          {/* Kutu 1 */}
           <View style={styles.imagePlaceholder}>
             <Text>[Bitki Görseli 1]</Text>
             <Text style={styles.dummyText}>Bitki Adı</Text>
           </View>
 
-          {/* Kutu 2 */}
           <View style={styles.imagePlaceholder}>
             <Text>[Bitki Görseli 2]</Text>
             <Text style={styles.dummyText}>Bitki Adı</Text>
           </View>
-
         </View>
       </View>
 

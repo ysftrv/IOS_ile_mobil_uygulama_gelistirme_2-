@@ -1,11 +1,10 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useRef, useState } from 'react';
-import { Button, Image, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRef } from 'react';
+import { Button, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function TaraEkrani() {
+export default function TaraEkrani({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef(null);
-  const [photo, setPhoto] = useState(null);
 
   if (!permission) return <View style={styles.container} />;
 
@@ -32,28 +31,11 @@ export default function TaraEkrani() {
     if (cameraRef.current) {
       try {
         const photoData = await cameraRef.current.takePictureAsync();
-        setPhoto(photoData.uri);
+        navigation.navigate('Önizleme', { photoUri: photoData.uri });
       } catch (error) {
-        console.log("Fotoğraf çekilirken hata oluştu:", error);
       }
     }
   };
-
-  if (photo) {
-    return (
-      <View style={styles.container}>
-        <Image source={{ uri: photo }} style={styles.camera} />
-        <View style={styles.onizlemeButonlari}>
-          <Button title="Yeniden Çek" onPress={() => setPhoto(null)} color="red" />
-          <Button 
-            title="Bitkiyi Analiz Et" 
-            onPress={() => alert("Analiz API'si ilerleyen haftalarda eklenecek!")} 
-            color="green" 
-          />
-        </View>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -109,10 +91,4 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: '#fff',
   },
-  onizlemeButonlari: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 20,
-    backgroundColor: '#fff',
-  }
 });
