@@ -1,17 +1,29 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
 import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LoadingOverlay from '../components/LoadingOverlay';
+import { identifyPlant } from '../services/plantApi';
 import { colors } from '../utils/theme';
 
 export default function PreviewScreen({ route, navigation }) {
   const { photoUri } = route.params;
+  const [loading, setLoading] = useState(false);
 
-  const handleAnaliz = () => {
-    Alert.alert(
-      'Analiz',
-      "Analiz özelliği gelecek hafta eklenecek",
-      [{ text: 'Tamam' }]
-    );
+  const handleAnaliz = async () => {
+    setLoading(true);
+    try {
+      const result = await identifyPlant(photoUri);
+      setLoading(false);
+      Alert.alert(
+        result.name,
+        `Yaygın adı: ${result.commonName}\n\nSulama: ${result.waterFrequency}\nIşık: ${result.sunlight}\n\n${result.description}`,
+        [{ text: 'Tamam' }]
+      );
+    } catch (error) {
+      setLoading(false);
+      Alert.alert('Hata', error.message, [{ text: 'Tamam' }]);
+    }
   };
 
   return (
@@ -24,6 +36,7 @@ export default function PreviewScreen({ route, navigation }) {
         <View style={styles.bosAlan} />
       </View>
 
+      <LoadingOverlay visible={loading} />
       <Image source={{ uri: photoUri }} style={styles.fotograf} resizeMode="cover" />
 
       <View style={styles.butonlar}>
