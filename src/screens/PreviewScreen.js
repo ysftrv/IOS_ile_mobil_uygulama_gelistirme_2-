@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LoadingOverlay from '../components/LoadingOverlay';
 import { identifyPlant } from '../services/plantApi';
@@ -13,16 +13,12 @@ export default function PreviewScreen({ route, navigation }) {
   const handleAnaliz = async () => {
     setLoading(true);
     try {
-      const result = await identifyPlant(photoUri);
+      const plantData = await identifyPlant(photoUri);
       setLoading(false);
-      Alert.alert(
-        result.name,
-        `Yaygın adı: ${result.commonName}\n\nSulama: ${result.waterFrequency}\nIşık: ${result.sunlight}\n\n${result.description}`,
-        [{ text: 'Tamam' }]
-      );
-    } catch (error) {
+      navigation.navigate('Sonuç', { plantData });
+    } catch {
       setLoading(false);
-      Alert.alert('Hata', error.message, [{ text: 'Tamam' }]);
+      navigation.navigate('Sonuç', { error: true });
     }
   };
 

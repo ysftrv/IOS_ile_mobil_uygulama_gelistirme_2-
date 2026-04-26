@@ -28,6 +28,7 @@ export async function identifyPlant(imageUri) {
       body: JSON.stringify({
         images: [base64],
         classification_level: 'species',
+        similar_images: true,
       }),
     });
   } catch (e) {
@@ -44,8 +45,8 @@ export async function identifyPlant(imageUri) {
   }
 
   const suggestion = data?.result?.classification?.suggestions?.[0];
-  if (!suggestion) {
-    throw new Error('Bitki tanımlanamadı. Lütfen daha net bir fotoğraf deneyin.');
+  if (!suggestion || (suggestion.probability ?? 0) < 0.4) {
+    throw new Error('Bitki algılanamadı');
   }
 
   const name = suggestion.name ?? 'Bilinmiyor';

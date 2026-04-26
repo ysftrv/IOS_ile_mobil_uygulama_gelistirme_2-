@@ -8,6 +8,7 @@ import HomeScreen from '../screens/HomeScreen';
 import ScanScreen from '../screens/ScanScreen';
 import MyPlantsScreen from '../screens/MyPlantsScreen';
 import PreviewScreen from '../screens/PreviewScreen';
+import ResultScreen from '../screens/ResultScreen';
 
 const Tab = createBottomTabNavigator();
 const RootStack = createNativeStackNavigator();
@@ -52,6 +53,7 @@ export default function AppNavigator() {
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         <RootStack.Screen name="Tabs" component={TabNavigator} />
         <RootStack.Screen name="Önizleme" component={PreviewScreen} />
+        <RootStack.Screen name="Sonuç" component={ResultScreen} />
       </RootStack.Navigator>
     </NavigationContainer>
   );
