@@ -1,9 +1,36 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system/legacy';
+import { useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { savePlant } from '../services/storageService';
 import { colors } from '../utils/theme';
 
 export default function ResultScreen({ route, navigation }) {
-  const { plantData, error } = route.params ?? {};
+  const { plantData, error, imageUri } = route.params ?? {};
+  const [saved, setSaved] = useState(false);
+
+  const handleKaydet = async () => {
+    let imageBase64 = null;
+    if (imageUri) {
+      try {
+        imageBase64 = await FileSystem.readAsStringAsync(imageUri, {
+          encoding: 'base64',
+        });
+      } catch (e) {
+        console.error('[ResultScreen] base64 okunamadı:', e);
+      }
+    }
+
+    const basari = await savePlant({ ...plantData, imageBase64 });
+
+    if (basari) {
+      setSaved(true);
+      Alert.alert('Başarılı', 'Bitki başarıyla kaydedildi!');
+    } else {
+      Alert.alert('Hata', 'Kayıt sırasında bir sorun oluştu, lütfen tekrar deneyin.');
+    }
+  };
 
   if (error || !plantData) {
     return (
@@ -47,6 +74,21 @@ export default function ResultScreen({ route, navigation }) {
 
           <Text style={styles.description}>{plantData.description}</Text>
         </View>
+
+        <TouchableOpacity
+          style={[styles.saveButton, saved && styles.saveButtonDone]}
+          onPress={handleKaydet}
+          disabled={saved}
+        >
+          <Ionicons
+            name={saved ? 'checkmark-circle-outline' : 'save-outline'}
+            size={20}
+            color={colors.card}
+          />
+          <Text style={styles.saveButtonText}>
+            {saved ? 'Kaydedildi ✓' : 'Bitkiyi Kaydet'}
+          </Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.homeButton}
@@ -107,8 +149,26 @@ const styles = StyleSheet.create({
     color: colors.text,
     lineHeight: 22,
   },
-  homeButton: {
+  saveButton: {
     backgroundColor: colors.primary,
+    borderRadius: 12,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  saveButtonDone: {
+    backgroundColor: '#81C784',
+  },
+  saveButtonText: {
+    color: colors.card,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  homeButton: {
+    backgroundColor: '#888',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',

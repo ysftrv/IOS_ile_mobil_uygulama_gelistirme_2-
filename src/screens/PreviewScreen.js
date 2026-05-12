@@ -15,7 +15,7 @@ export default function PreviewScreen({ route, navigation }) {
     try {
       const plantData = await identifyPlant(photoUri);
       setLoading(false);
-      navigation.navigate('Sonuç', { plantData });
+      navigation.navigate('Sonuç', { plantData, imageUri: photoUri });
     } catch {
       setLoading(false);
       navigation.navigate('Sonuç', { error: true });
