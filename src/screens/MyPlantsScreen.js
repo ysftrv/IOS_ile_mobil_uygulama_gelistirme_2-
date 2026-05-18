@@ -11,8 +11,35 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { clearAllPlants, deletePlant, getPlants } from '../services/storageService';
+import { clearAllPlants, deletePlant, getPlants, savePlant } from '../services/storageService';
 import { colors } from '../utils/theme';
+
+const TEST_PLANTS = [
+  {
+    name: 'Monstera deliciosa',
+    commonName: 'İsviçre Peyniri Bitkisi',
+    waterFrequency: 'Haftada 1-2 kez',
+    sunlight: 'Parlak dolaylı ışık',
+    description: 'Tropikal kökenli, büyük yapraklı bir iç mekan bitkisi.',
+    imageBase64: null,
+  },
+  {
+    name: 'Sansevieria trifasciata',
+    commonName: 'Kayınvalide Dili',
+    waterFrequency: '3-4 haftada bir',
+    sunlight: 'Düşük ila parlak dolaylı ışık',
+    description: 'Dayanıklı, bakımı kolay bir iç mekan bitkisi.',
+    imageBase64: null,
+  },
+  {
+    name: 'Ficus lyrata',
+    commonName: 'Keman Yapraklı İncir',
+    waterFrequency: 'Haftada 1 kez',
+    sunlight: 'Parlak dolaylı ışık',
+    description: 'Büyük, dalgalı yapraklarıyla dekoratif bir ağaç türü.',
+    imageBase64: null,
+  },
+];
 
 function formatDate(isoString) {
   const d = new Date(isoString);
@@ -23,23 +50,19 @@ function formatDate(isoString) {
 }
 
 function PlantCard({ item, onDelete }) {
-  const handleLongPress = () => {
+  const handleDelete = () => {
     Alert.alert(
-      'Kaydı Sil',
-      `"${item.commonName}" bitkisini silmek istiyor musunuz?`,
+      'Bitkiyi Sil',
+      `"${item.commonName}" bitkisini silmek istediğinize emin misiniz?`,
       [
         { text: 'Vazgeç', style: 'cancel' },
-        {
-          text: 'Sil',
-          style: 'destructive',
-          onPress: () => onDelete(item.id),
-        },
+        { text: 'Sil', style: 'destructive', onPress: () => onDelete(item.id) },
       ]
     );
   };
 
   return (
-    <TouchableOpacity style={styles.card} onLongPress={handleLongPress} activeOpacity={0.8}>
+    <View style={styles.card}>
       {item.imageBase64 ? (
         <Image
           source={{ uri: `data:image/jpeg;base64,${item.imageBase64}` }}
@@ -58,9 +81,15 @@ function PlantCard({ item, onDelete }) {
         <Text style={styles.scientificName} numberOfLines={1}>
           {item.name}
         </Text>
+        <Text style={styles.infoText}>💧 {item.waterFrequency}</Text>
+        <Text style={styles.infoText}>☀️ {item.sunlight}</Text>
         <Text style={styles.date}>{formatDate(item.savedAt)}</Text>
       </View>
-    </TouchableOpacity>
+
+      <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+        <Ionicons name="trash-outline" size={20} color="#E53935" />
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -70,7 +99,7 @@ function EmptyState() {
       <Ionicons name="leaf-outline" size={72} color={colors.tabInactive} />
       <Text style={styles.emptyText}>Henüz kayıtlı bitkiniz yok</Text>
       <Text style={styles.emptySubText}>
-        Bir bitki tarayın ve "Bitkiyi Kaydet" butonuna basın.
+        Bitki taramak için Tara sekmesine gidin.
       </Text>
     </View>
   );
@@ -78,6 +107,7 @@ function EmptyState() {
 
 export default function MyPlantsScreen() {
   const [plants, setPlants] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   const loadPlants = useCallback(async () => {
     const data = await getPlants();
@@ -85,6 +115,12 @@ export default function MyPlantsScreen() {
   }, []);
 
   useFocusEffect(loadPlants);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadPlants();
+    setRefreshing(false);
+  };
 
   const handleDelete = async (id) => {
     await deletePlant(id);
@@ -109,6 +145,13 @@ export default function MyPlantsScreen() {
     );
   };
 
+  const handleAddTestData = async () => {
+    for (const plant of TEST_PLANTS) {
+      await savePlant(plant);
+    }
+    await loadPlants();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -120,6 +163,11 @@ export default function MyPlantsScreen() {
         )}
       </View>
 
+      <TouchableOpacity style={styles.testButton} onPress={handleAddTestData}>
+        <Ionicons name="flask-outline" size={16} color={colors.card} />
+        <Text style={styles.testButtonText}>Test Verisi Ekle</Text>
+      </TouchableOpacity>
+
       <FlatList
         data={plants}
         keyExtractor={(item) => String(item.id)}
@@ -128,6 +176,8 @@ export default function MyPlantsScreen() {
         )}
         contentContainerStyle={plants.length === 0 ? styles.emptyList : styles.list}
         ListEmptyComponent={<EmptyState />}
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
       />
     </SafeAreaView>
   );
@@ -159,6 +209,22 @@ const styles = StyleSheet.create({
   },
   clearButtonText: {
     color: '#E53935',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  testButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#9E9E9E',
+  },
+  testButtonText: {
+    color: colors.card,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -199,22 +265,30 @@ const styles = StyleSheet.create({
   },
   cardInfo: {
     flex: 1,
+    gap: 3,
   },
   commonName: {
     fontSize: 17,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 2,
   },
   scientificName: {
     fontSize: 13,
     fontStyle: 'italic',
     color: colors.textLight,
-    marginBottom: 4,
+  },
+  infoText: {
+    fontSize: 13,
+    color: colors.textLight,
   },
   date: {
-    fontSize: 12,
+    fontSize: 11,
     color: colors.tabInactive,
+    marginTop: 2,
+  },
+  deleteButton: {
+    padding: 8,
+    alignSelf: 'flex-start',
   },
   emptyContainer: {
     flex: 1,
